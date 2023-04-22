@@ -1,0 +1,57 @@
+---
+title: "Powerlifting"
+author: "Jared Pearson" 
+date: "2023-04-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Powerlifting is a sport that requires immense physical and mental strength, and as a powerlifter, I have wondered about things like differences in strength between sexes, which weight class has the strongest lifters, or age which age group is the strongest. Through this data science project, I aim to explore these questions and others tp some insights into the powerlifting community. 
+
+questions
+What is the distribution of lifters between weight classes and how does this vary by sex?
+
+How much does equipment change how you perform?
+
+How do lifters perform in the different divisions?
+
+Which weight classes have the strongest strength ratio?
+
+How do weight ratios differ between the sexes?
+
+# Load tidyverse for data manipulation
+# Load ggplot for plotting
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+```
+
+
+# Raw unfiltered data
+This data set is from github and it was created by Nichole Monhait. The data comes from open powerlifting which is a website dedicated to compiling powerlifting data from federations around the world.
+```{r}
+ipf_lifts <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-10-08/ipf_lifts.csv")
+```
+
+```{r}
+glimpse(ipf_lifts)
+```
+
+There are few key terms to note before going forward
+
+Event: Event refers to what lifts the lifter performed. S means squat, B means bench and D means deadlift so SBD would be squat, bench and deadlift.
+
+Equipment: Equipment refers to what the lifter is wearing. Sinlgle ply usually means a special supportive lifting suits or shirts designed for certain lifts and most likely knee wraps for squat and Raw means a non-supportive singlet and knee sleeves for squat.
+
+age_class: This refers to whatever age class the lifter falls into such as 20-23 or 24-34. These classes are decided by the IPF.
+
+Division: This refers to certain age groups or category the lifter can choose to participate in. If a lifter falls within a certain age they can choose to compete in the class for that age otherwise they compete in no division and compete in the default which is usually just open. They can also choose to lift for a college putting them in the collegiate division and there are also divisions for military and police/fire.
+
+Place: This just refers to their rank for their bracket. 1 means first place, 2 means second place and so on and so forth.
+
