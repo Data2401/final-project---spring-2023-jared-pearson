@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Powerlifting is a sport that requires immense physical and mental strength, and as a powerlifter, I have wondered about things like differences in strength between sexes, which weight class has the strongest lifters, or age which age group is the strongest. Through this data science project, I aim to explore these questions and others tp some insights into the powerlifting community. 
+Powerlifting is a sport that requires immense physical and mental strength, and as a powerlifter, I have wondered about things like differences in strength between sexes, which weight class has the strongest lifters, or age which age group is the strongest. Through this data science project, I aim to explore these questions and others to explore some insights into the powerlifting community. 
 
 questions
 What is the distribution of lifters between weight classes and how does this vary by sex?
@@ -29,6 +29,8 @@ How do weight ratios differ between the sexes?
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(knitr)
+library(dplyr)
 
 ```
 
@@ -43,15 +45,169 @@ ipf_lifts <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/
 glimpse(ipf_lifts)
 ```
 
+#data cleaning
+
+```{r}
+
+invalid_divisions <- c("Heavy","Light","Middle","Super","SuperHeavy")
+
+ipf_lifts$division <- as.character(ipf_lifts$division)
+
+ipf_lifts <- subset(ipf_lifts, !(division %in% invalid_divisions))
+
+ipf_lifts$division <- as.factor(ipf_lifts$division)
+levels(ipf_lifts$division)
+
+```
+```{r}
+ipf_lifts$best3squat_kg <- ifelse(is.na(ipf_lifts$best3squat_kg), 0, ipf_lifts$best3squat_kg)
+
+ipf_lifts$best3bench_kg <- ifelse(is.na(ipf_lifts$best3bench_kg), 0, ipf_lifts$best3bench_kg)
+
+ipf_lifts$best3deadlift_kg <- ifelse(is.na(ipf_lifts$best3deadlift_kg), 0, ipf_lifts$best3deadlift_kg)
+```
+
+```{r}
+
+ipf_lifts$division <- replace(ipf_lifts$division, is.na(ipf_lifts$division), "Open")
+```
+
+```{r}
+ipf_lifts <- ipf_lifts%>%
+  filter(!is.na(bodyweight_kg))
+
+ipf_lifts <- ipf_lifts%>%
+  filter(!is.na(age))
+```
+
+#take a look at filtered data
+
+```{r}
+glimpse(ipf_lifts)
+```
+
+
 There are few key terms to note before going forward
 
-Event: Event refers to what lifts the lifter performed. S means squat, B means bench and D means deadlift so SBD would be squat, bench and deadlift.
 
 Equipment: Equipment refers to what the lifter is wearing. Sinlgle ply usually means a special supportive lifting suits or shirts designed for certain lifts and most likely knee wraps for squat and Raw means a non-supportive singlet and knee sleeves for squat.
 
-age_class: This refers to whatever age class the lifter falls into such as 20-23 or 24-34. These classes are decided by the IPF.
 
-Division: This refers to certain age groups or category the lifter can choose to participate in. If a lifter falls within a certain age they can choose to compete in the class for that age otherwise they compete in no division and compete in the default which is usually just open. They can also choose to lift for a college putting them in the collegiate division and there are also divisions for military and police/fire.
+Division: This refers to certain age groups or category the lifter can choose to participate in. If a lifter falls within a certain age they can choose to compete in the class for that age otherwise they compete in no division and compete in the default which is usually just open. 
 
-Place: This just refers to their rank for their bracket. 1 means first place, 2 means second place and so on and so forth.
+
+1. How do lifters perform in the different divisions.
+ 
+ # As a table 
+ 
+```{r}
+division_lifts <- ipf_lifts %>%
+  group_by(division) %>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift))
+
+division_lifts
+```
+
+ # As a graph
+ 
+```{r}
+division_lifts %>%
+  ggplot(aes(x=division, y=avg_squat)) +
+  geom_col()
+  
+division_lifts %>%
+  ggplot(aes(x=division, y=avg_bench)) +
+  geom_col()
+
+division_lifts %>%
+  ggplot(aes(x=division, y=avg_deadlift)) +
+  geom_col()
+
+division_lifts %>%
+  ggplot(aes(x=division, y=avg_total)) +
+  geom_col()
+```
+
+
+```{r}
+ipf_lifts%>%
+  na.omit()%>%
+  group_by(division)%>%
+  summarise(avg_squat_ratio = mean(best3squat_kg/bodyweight_kg),
+            avg_bench_ratio = mean(best3bench_kg/bodyweight_kg),
+            avg_deadlift_ratio = mean(best3deadlift_kg/bodyweight_kg),
+            avg_total_ratio = mean((best3squat_kg+best3bench_kg+best3deadlift_kg)/bodyweight_kg))
+
+```
+
+#as weight ratios
+```{r}
+division_ratios <- ipf_lifts %>%
+  group_by(division) %>%
+  summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0])/mean(bodyweight_kg),
+            avg_bench_ratio = mean(best3bench_kg[best3bench_kg != 0])/mean(bodyweight_kg),
+            avg_deadlift_ratio = mean(best3deadlift_kg[best3deadlift_kg != 0])/mean(bodyweight_kg),
+            avg_total_ratio = sum(avg_squat_ratio,avg_bench_ratio,avg_deadlift_ratio))
+
+division_ratios
+```
+
+
+```{r}
+division_ratios%>%
+  ggplot(aes(x=division, y=avg_squat_ratio)) +
+  geom_col()
+  
+division_ratios %>%
+  ggplot(aes(x=division, y=avg_bench_ratio)) +
+  geom_col()
+
+division_ratios %>%
+  ggplot(aes(x=division, y=avg_deadlift_ratio)) +
+  geom_col()
+
+division_ratios %>%
+  ggplot(aes(x=division, y=avg_total_ratio))+
+  geom_col()
+```
+
+
+2. What is the distribution of lifters by weight class
+
+
+```{r}
+
+```
+
+```{r}
+  
+```
+
+```{r}
+
+ 
+```
+
+
+
+
+3.How much does equipment change how you perform?
+```{r}
+
+```
+
+
+4.Which weight classes have the strongest strength ratio?
+```{r}
+
+```
+
+
+5.How do weight ratios differ between the sexes?
+```{r}
+
+```
 
