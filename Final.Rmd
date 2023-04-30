@@ -111,7 +111,7 @@ glimpse(ipf_lifts)
 There are few key terms to note before going forward
 
 
-Equipment: Equipment refers to what the lifter is wearing. Sinlgle ply usually means a special supportive lifting suits or shirts designed for certain lifts and most likely knee wraps for squat and Raw means a non-supportive singlet and knee sleeves for squat.
+Equipment: Equipment refers to what the lifter is wearing. Sinlgle ply usually means a special supportive lifting suits or shirts designed for certain lifts and most likely knee wraps for squat and Raw means a non-supportive singlet and knee sleeves for squat and wraps means a non-supportive singlet and wraps for squat.
 
 
 Division: This refers to certain age groups or category the lifter can choose to participate in. If a lifter falls within a certain age they can choose to compete in the class for that age otherwise they compete in no division and compete in the default which is usually just open. 
@@ -273,9 +273,84 @@ lifters_by_equipment_pivoted%>%
   geom_bar(stat = "identity", position = "dodge")
 ```
 
-4.Which weight classes have the strongest strength ratio?
+4.Which weight classes are the strongest?
 ```{r}
+avg_lifts_weight_class <- ipf_lifts %>% 
+  group_by(weight_class_kg)%>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift))%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+avg_lifts_weight_class
+  
+```
 
+```{r}
+avg_lifts_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_squat))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average squat by weight class")
+
+avg_lifts_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_bench))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average bench by weight class")
+
+avg_lifts_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_deadlift))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average deadlift by weight class")
+
+avg_lifts_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_total))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average total by weight class")
+```
+
+by ratio
+
+```{r}
+avg_ratio_weight_class <- ipf_lifts %>% 
+  group_by(weight_class_kg)%>%
+  summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0]/bodyweight_kg),
+            avg_bench_ratio = mean(best3bench_kg[best3bench_kg != 0]/bodyweight_kg),
+            avg_deadlift_ratio = mean(best3deadlift_kg[best3deadlift_kg != 0]/bodyweight_kg),
+            avg_total_ratio = mean((best3squat_kg[best3squat_kg != 0]+best3bench_kg[best3bench_kg != 0] + best3deadlift_kg[best3deadlift_kg != 0])/bodyweight_kg))%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+avg_ratio_weight_class
+```
+
+```{r}
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average squat Ratio by Weight Class")
+
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average Bench Ratio by Weight Class")
+
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average Deadlift Ratio by Weight Class")
+
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average Total Ratio by Weight Class")
 ```
 
 
