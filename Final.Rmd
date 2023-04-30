@@ -14,15 +14,17 @@ knitr::opts_chunk$set(echo = TRUE)
 Powerlifting is a sport that requires immense physical and mental strength, and as a powerlifter, I have wondered about things like differences in strength between sexes, which weight class has the strongest lifters, or age which age group is the strongest. Through this data science project, I aim to explore these questions and others to explore some insights into the powerlifting community. 
 
 questions
-What is the distribution of lifters between weight classes and how does this vary by sex?
-
-How much does equipment change how you perform?
 
 How do lifters perform in the different divisions?
 
-Which weight classes have the strongest strength ratio?
+What is the distribution of lifters between weight classes?
 
-How do weight ratios differ between the sexes?
+How does equipment change how you perform?
+
+
+Which weight classes are the strongest?
+
+How do strength differ between the sexes?
 
 # Load tidyverse for data manipulation
 # Load ggplot for plotting
@@ -47,6 +49,7 @@ glimpse(ipf_lifts)
 
 #data cleaning
 
+# Take out invalid divisions
 ```{r}
 
 invalid_divisions <- c("Heavy","Light","Middle","Super","SuperHeavy")
@@ -59,6 +62,8 @@ ipf_lifts$division <- as.factor(ipf_lifts$division)
 levels(ipf_lifts$division)
 
 ```
+
+# Change NA's for lifts to 0
 ```{r}
 ipf_lifts$best3squat_kg <- ifelse(is.na(ipf_lifts$best3squat_kg), 0, ipf_lifts$best3squat_kg)
 
@@ -67,18 +72,34 @@ ipf_lifts$best3bench_kg <- ifelse(is.na(ipf_lifts$best3bench_kg), 0, ipf_lifts$b
 ipf_lifts$best3deadlift_kg <- ifelse(is.na(ipf_lifts$best3deadlift_kg), 0, ipf_lifts$best3deadlift_kg)
 ```
 
+# change NA divisions to Open
 ```{r}
 
 ipf_lifts$division <- replace(ipf_lifts$division, is.na(ipf_lifts$division), "Open")
 ```
 
+# Take out NA bodyweights, ages and weight classes
 ```{r}
 ipf_lifts <- ipf_lifts%>%
   filter(!is.na(bodyweight_kg))
 
 ipf_lifts <- ipf_lifts%>%
   filter(!is.na(age))
+
+ipf_lifts <- ipf_lifts%>%
+  filter(!is.na(weight_class_kg))
 ```
+
+#take out invalid weight classes
+```{r}
+
+ipf_lifts<-subset(ipf_lifts, !weight_class_kg %in% c("100+", "82.5+", "40", "67.5+","110+" ))
+```
+
+                          
+                        
+                             
+   
 
 #take a look at filtered data
 
@@ -96,7 +117,7 @@ Equipment: Equipment refers to what the lifter is wearing. Sinlgle ply usually m
 Division: This refers to certain age groups or category the lifter can choose to participate in. If a lifter falls within a certain age they can choose to compete in the class for that age otherwise they compete in no division and compete in the default which is usually just open. 
 
 
-1. How do lifters perform in the different divisions.
+1. How do lifters perform in the different divisions?
  
  # As a table 
  
@@ -132,16 +153,6 @@ division_lifts %>%
 ```
 
 
-```{r}
-ipf_lifts%>%
-  na.omit()%>%
-  group_by(division)%>%
-  summarise(avg_squat_ratio = mean(best3squat_kg/bodyweight_kg),
-            avg_bench_ratio = mean(best3bench_kg/bodyweight_kg),
-            avg_deadlift_ratio = mean(best3deadlift_kg/bodyweight_kg),
-            avg_total_ratio = mean((best3squat_kg+best3bench_kg+best3deadlift_kg)/bodyweight_kg))
-
-```
 
 #as weight ratios
 ```{r}
@@ -179,26 +190,88 @@ division_ratios %>%
 
 
 ```{r}
-
+weight_class_distribution <- ipf_lifts%>%
+  count(weight_class_kg)%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+weight_class_distribution
 ```
 
 ```{r}
+weight_class_distribution %>%
+  ggplot(aes(x = weight_class_kg, y = n))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Number of Lifters", title="Distribution of Lifters by Weight Class")
   
 ```
-
+#Separate by sex 
 ```{r}
 
+male_weight_classes <- c("52","53", "56", "59", "60", "66", "67.5", "74", "75", "82.5", "83", "90", "93", "100", "105", "110", "120", "120+", "125", "125+")
+
+female_weight_classes<- c("43", "44", "47", "48", "52", "56", "57", "60", "63", "67.5", "72", "75", "82.5", "84", "84+", "90", "90+")
+
+
+
+male_weight_class_distribution <- ipf_lifts %>%
+  filter(sex == "M") %>%
+  count(weight_class_kg=factor(weight_class_kg,levels = male_weight_classes)) %>%
+  arrange(weight_class_kg)
+male_weight_class_distribution
+
+female_weight_class_distribution <- ipf_lifts %>%
+  filter(sex == "F") %>%
+  count(weight_class_kg=factor(weight_class_kg,levels = female_weight_classes)) %>%
+  arrange(weight_class_kg)
+female_weight_class_distribution
  
 ```
 
+```{r}
+male_weight_class_distribution %>%
+  filter(!is.na(weight_class_kg))%>%
+  ggplot(aes(x = weight_class_kg, y = n))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Number of Lifters", title="Distribution of Male Lifters by Weight Class")
+
+female_weight_class_distribution %>%
+  ggplot(aes(x = weight_class_kg, y = n))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Number of Lifters", title="Distribution of Female Lifters by Weight Class")
+
+
+```
 
 
 
 3.How much does equipment change how you perform?
 ```{r}
+lifters_by_equipment <- ipf_lifts %>%
+  group_by(equipment)%>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift))
+lifters_by_equipment
 
+lifters_by_equipment_pivoted <- lifters_by_equipment%>%
+  pivot_longer(cols = c("avg_squat", "avg_bench", "avg_deadlift", "avg_total"),
+               names_to = "lift_type",
+               values_to = "avg_weight_kg")
+              
+
+lifters_by_equipment_pivoted
 ```
 
+
+```{r}
+lifters_by_equipment_pivoted%>%
+  ggplot(aes(x=lift_type, y=avg_weight_kg, fill = equipment))+
+  geom_bar(stat = "identity", position = "dodge")
+```
 
 4.Which weight classes have the strongest strength ratio?
 ```{r}
