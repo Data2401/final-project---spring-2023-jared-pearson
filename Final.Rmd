@@ -318,14 +318,17 @@ by ratio
 ```{r}
 avg_ratio_weight_class <- ipf_lifts %>% 
   group_by(weight_class_kg)%>%
-  summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0]/bodyweight_kg),
-            avg_bench_ratio = mean(best3bench_kg[best3bench_kg != 0]/bodyweight_kg),
-            avg_deadlift_ratio = mean(best3deadlift_kg[best3deadlift_kg != 0]/bodyweight_kg),
-            avg_total_ratio = mean((best3squat_kg[best3squat_kg != 0]+best3bench_kg[best3bench_kg != 0] + best3deadlift_kg[best3deadlift_kg != 0])/bodyweight_kg))%>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]/bodyweight_kg),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]/bodyweight_kg),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]/bodyweight_kg),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift)/bodyweight_kg)%>%
   mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
   arrange(weight_class_kg)
 avg_ratio_weight_class
+
+
 ```
+
 
 ```{r}
 avg_ratio_weight_class %>%
