@@ -207,12 +207,9 @@ weight_class_distribution %>%
 ```
 #Separate by sex 
 ```{r}
+male_weight_classes<- c("52",  "53",  "56","59",  "60",  "66",  "67.5","74",  "75",  "82.5","83",  "90",  "93",  "100", "105", "110", "120", "120+","125", "125+")
 
-male_weight_classes <- c("52","53", "56", "59", "60", "66", "67.5", "74", "75", "82.5", "83", "90", "93", "100", "105", "110", "120", "120+", "125", "125+")
-
-female_weight_classes<- c("43", "44", "47", "48", "52", "56", "57", "60", "63", "67.5", "72", "75", "82.5", "84", "84+", "90", "90+")
-
-
+female_weight_classes<- c("43",  "44",  "47",  "48",  "52",  "56",  "57",  "60",  "63",  "67.5", "72", "75",  "82.5","84",  "84+", "90",  "90+")
 
 male_weight_class_distribution <- ipf_lifts %>%
   filter(sex == "M") %>%
@@ -362,28 +359,94 @@ avg_ratio_weight_class %>%
 
 5.How do weight ratios differ between the sexes?
 ```{r}
-avg_ratio_weight_class %>%
-  ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
-  geom_bar(stat = "identity", fill = "navyblue")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average squat to Bodyweight Ratio by Weight Class")
+avg_lifts_weight_class_male <- ipf_lifts %>% 
+  filter(sex == "M") %>%
+  group_by(weight_class_kg=factor(weight_class_kg,levels = male_weight_classes))%>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift))%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+avg_lifts_weight_class_male
 
-avg_ratio_weight_class %>%
-  ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
-  geom_bar(stat = "identity", fill = "navyblue")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Bench to Bodyweight Ratio by Weight Class")
-
-avg_ratio_weight_class %>%
-  ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
-  geom_bar(stat = "identity", fill = "navyblue")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Deadlift to Bodyweight Ratio by Weight Class")
-
-avg_ratio_weight_class %>%
-  ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
-  geom_bar(stat = "identity", fill = "navyblue")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Total to Bodyweight Ratio by Weight Class")
+avg_lifts_weight_class_female <- ipf_lifts %>% 
+  filter(sex == "F") %>%
+  group_by(weight_class_kg=factor(weight_class_kg,levels = female_weight_classes))%>%
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+            avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
+            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
+            avg_total = sum(avg_squat,avg_bench,avg_deadlift))%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+avg_lifts_weight_class_female
 ```
+
+```{r}
+avg_lifts_weight_class_male %>%
+  ggplot(aes(x = weight_class_kg, y = avg_squat))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average squat by weight class male")
+
+avg_lifts_weight_class_male %>%
+  ggplot(aes(x = weight_class_kg, y = avg_bench))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average bench by weight class male")
+
+avg_lifts_weight_class_male%>%
+  ggplot(aes(x = weight_class_kg, y = avg_deadlift))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average deadlift by weight class male")
+
+avg_lifts_weight_class_male%>%
+  ggplot(aes(x = weight_class_kg, y = avg_total))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average total by weight class male")
+
+
+```
+```{r}
+avg_lifts_weight_class_female%>%
+  ggplot(aes(x = weight_class_kg, y = avg_squat))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average squat by weight class female")
+
+avg_lifts_weight_class_female%>%
+  ggplot(aes(x = weight_class_kg, y = avg_bench))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average bench by weight class female")
+
+avg_lifts_weight_class_female%>%
+  ggplot(aes(x = weight_class_kg, y = avg_deadlift))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average deadlift by weight class female")
+
+avg_lifts_weight_class_female%>%
+  ggplot(aes(x = weight_class_kg, y = avg_total))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Weight lifted", title="Average total by weight class female")
+```
+#by ratio
+
+```{r}
+avg_ratio_weight_class <- ipf_lifts %>%
+  group_by(weight_class_kg) %>%
+  summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0])/mean(bodyweight_kg),
+            avg_bench_ratio = mean(best3bench_kg[best3bench_kg != 0])/mean(bodyweight_kg),
+            avg_deadlift_ratio = mean(best3deadlift_kg[best3deadlift_kg != 0])/mean(bodyweight_kg),
+            avg_total_ratio = sum(avg_squat_ratio,avg_bench_ratio,avg_deadlift_ratio))%>%
+  mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
+  arrange(weight_class_kg)
+
+avg_ratio_weight_class
+```
+
 
