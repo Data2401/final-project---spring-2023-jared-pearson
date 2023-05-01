@@ -316,18 +316,21 @@ avg_lifts_weight_class %>%
 by ratio
 
 ```{r}
-avg_ratio_weight_class <- ipf_lifts %>% 
-  group_by(weight_class_kg)%>%
-  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]/bodyweight_kg),
-            avg_bench = mean(best3bench_kg[best3bench_kg != 0]/bodyweight_kg),
-            avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]/bodyweight_kg),
-            avg_total = sum(avg_squat,avg_bench,avg_deadlift)/bodyweight_kg)%>%
+
+avg_ratio_weight_class <- ipf_lifts %>%
+  group_by(weight_class_kg) %>%
+  summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0])/mean(bodyweight_kg),
+            avg_bench_ratio = mean(best3bench_kg[best3bench_kg != 0])/mean(bodyweight_kg),
+            avg_deadlift_ratio = mean(best3deadlift_kg[best3deadlift_kg != 0])/mean(bodyweight_kg),
+            avg_total_ratio = sum(avg_squat_ratio,avg_bench_ratio,avg_deadlift_ratio))%>%
   mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
   arrange(weight_class_kg)
+
 avg_ratio_weight_class
 
-
 ```
+
+
 
 
 ```{r}
@@ -335,30 +338,52 @@ avg_ratio_weight_class %>%
   ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average squat Ratio by Weight Class")
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average squat to Bodyweight Ratio by Weight Class")
 
 avg_ratio_weight_class %>%
   ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Weight lifted", title="Average Bench Ratio by Weight Class")
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Bench to Bodyweight Ratio by Weight Class")
 
 avg_ratio_weight_class %>%
   ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Weight lifted", title="Average Deadlift Ratio by Weight Class")
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Deadlift to Bodyweight Ratio by Weight Class")
 
 avg_ratio_weight_class %>%
   ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x= "Weight Class", y= "Weight lifted", title="Average Total Ratio by Weight Class")
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Total to Bodyweight Ratio by Weight Class")
 ```
 
 
 5.How do weight ratios differ between the sexes?
 ```{r}
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average squat to Bodyweight Ratio by Weight Class")
 
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Bench to Bodyweight Ratio by Weight Class")
+
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Deadlift to Bodyweight Ratio by Weight Class")
+
+avg_ratio_weight_class %>%
+  ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
+  geom_bar(stat = "identity", fill = "navyblue")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x= "Weight Class", y= "Ratio to Body Weight", title="Average Total to Bodyweight Ratio by Weight Class")
 ```
 
