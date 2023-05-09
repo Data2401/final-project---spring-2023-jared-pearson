@@ -24,7 +24,7 @@ How does equipment change how you perform?
 
 Which weight classes are the strongest?
 
-How do strength differ between the sexes?
+How does strength differ between the sexes?
 
 # Getting ready with data prep
 
@@ -120,12 +120,14 @@ Division: This refers to certain age groups or category the lifter can choose to
 
 ##  How do lifters perform in the different divisions?
 
-I wanted to see which divisions were the strongest and which were the weakest. To do this I made this table by grouping by division and taking the average squat, bench, deadlift and total for each division. 
+I wanted to see which divisions were the strongest and which were the weakest. To do this I made this table by grouping by division and taking the average squat, bench, deadlift and total for each division. Then I took that data and plotted it into four bar graphs for each lift and the total.
 
 ```{r}
+#table for division lifts
 division_lifts <- ipf_lifts %>%
-  group_by(division) %>%
-  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
+  group_by(division) %>% 
+  #Took out 0's so they don't factor into the average this will show up in the rest of the code
+  summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]), 
             avg_bench = mean(best3bench_kg[best3bench_kg != 0]),
             avg_deadlift = mean(best3deadlift_kg[best3deadlift_kg != 0]),
             avg_total = sum(avg_squat,avg_bench,avg_deadlift))
@@ -134,28 +136,32 @@ division_lifts
 ```
 
 
-Then I took that data and plotted it into four bar graphs for each lift and the total.
 
 ```{r}
+#plot for average squat
 division_lifts %>%
   ggplot(aes(x=division, y=avg_squat)) +
   geom_col()+
   ylab("avg_squat(kg)")
-  
+ 
+#plot for average bench 
 division_lifts %>%
   ggplot(aes(x=division, y=avg_bench)) +
   geom_col()+
   ylab("avg_bench(kg)")
 
+#plot for average deadlift
 division_lifts %>%
   ggplot(aes(x=division, y=avg_deadlift)) +
   geom_col()+
   ylab("avg_deadlift(kg)")
 
+#plot for average total
 division_lifts %>%
   ggplot(aes(x=division, y=avg_total)) +
   geom_col()+
   ylab("avg_total(kg)")
+
 
 
 ```
@@ -170,6 +176,7 @@ I wanted to see how my results would change if I adjusted for body weight to see
 
 
 ```{r}
+#table for division ratios
 division_ratios <- ipf_lifts %>%
   group_by(division) %>%
   summarise(avg_squat_ratio = mean(best3squat_kg[best3squat_kg != 0])/mean(bodyweight_kg),
@@ -182,18 +189,22 @@ division_ratios
  
 After I made the table I used it to make these four bar graphs.
 ```{r}
+#plot for average squat ratio
 division_ratios%>%
   ggplot(aes(x=division, y=avg_squat_ratio)) +
   geom_col()
   
+#plot for average bench ratio
 division_ratios %>%
   ggplot(aes(x=division, y=avg_bench_ratio)) +
   geom_col()
 
+#plot for average deadlift ratio
 division_ratios %>%
   ggplot(aes(x=division, y=avg_deadlift_ratio)) +
   geom_col()
 
+#plot for average total ratio
 division_ratios %>%
   ggplot(aes(x=division, y=avg_total_ratio))+
   geom_col()
@@ -203,11 +214,12 @@ division_ratios %>%
 As we can see there is not much difference the graphs look almost exactly the same. Therefore we can say that the data shows that there is little difference between raw strength and relative strength of the divisions. They both show that strength ascends from the younger divisions to open and descends with the older divisions. 
 
 
-# What is the distribution of lifters by weight class?
+## What is the distribution of lifters by weight class?
 
 I wanted to know which of the weight classes had the most lifters in them and which weight classes have the least. To do this I counted the lifters in each weight class and translated that into a bar graph.
 
 ```{r}
+#table for weight class distribution
 weight_class_distribution <- ipf_lifts%>%
   count(weight_class_kg)%>%
   mutate(weight_class_kg = fct_reorder(weight_class_kg, as.numeric(sub("\\+","",weight_class_kg))))%>%
@@ -216,6 +228,7 @@ weight_class_distribution
 ```
 
 ```{r}
+#plot for weight class distribution
 weight_class_distribution %>%
   ggplot(aes(x = weight_class_kg, y = n))+
   geom_bar(stat = "identity", fill = "navyblue")+
@@ -226,17 +239,22 @@ weight_class_distribution %>%
 
 Looking at it now it appears that most of the lifters are in the middle range weight classes. However there are some significantly lower values mixed in which is most likely attributed to the fact that this graph is a combined result of males and females which have slightly different weight classes.To fix this I separated the sexes to get a more clear result.
 
-# Distribution of weight classes separated by sex
+## Distribution of weight classes separated by sex
 
 ```{r}
+#Some of the weight classes were showing up in the wrong sex so I had to specify which one's go where by making vectors for male and female weight classes and use the levels function to make sure they were assigned propery
 male_weight_classes<- c("52",  "53",  "56","59",  "60",  "66",  "67.5","74",  "75",  "82.5","83",  "90",  "93",  "100", "105", "110", "120", "120+","125", "125+")
+
 female_weight_classes<- c("43",  "44",  "47",  "48",  "52",  "56",  "57",  "60",  "63",  "67.5", "72", "75",  "82.5","84",  "84+", "90",  "90+")
+
+#table for male weight classes
 male_weight_class_distribution <- ipf_lifts %>%
   filter(sex == "M") %>%
   count(weight_class_kg=factor(weight_class_kg,levels = male_weight_classes)) %>%
   arrange(weight_class_kg)
 male_weight_class_distribution
 
+#table for female weight classes
 female_weight_class_distribution <- ipf_lifts %>%
   filter(sex == "F") %>%
   count(weight_class_kg=factor(weight_class_kg,levels = female_weight_classes)) %>%
@@ -246,6 +264,7 @@ female_weight_class_distribution
 ```
 
 ```{r}
+#plot for male weight classes
 male_weight_class_distribution %>%
   filter(!is.na(weight_class_kg))%>%
   ggplot(aes(x = weight_class_kg, y = n))+
@@ -253,6 +272,7 @@ male_weight_class_distribution %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Number of Lifters", title="Distribution of Male Lifters by Weight Class")
 
+#plot for female weight classes
 female_weight_class_distribution %>%
   ggplot(aes(x = weight_class_kg, y = n))+
   geom_bar(stat = "identity", fill = "navyblue")+
@@ -262,13 +282,14 @@ female_weight_class_distribution %>%
 
 ```
 
-Looking at these two graphs it shows that males and females both center around the middle range weight classes with men skewing slightly to the heavier side and women skewing more to the lighter side. They both have outliers with the male's 53kg weight class having significantly less lifters and the female's 52kg weight class having significantly higher lifters.
+Looking at these two graphs it shows that males and females both center around the middle range weight classes with men skewing slightly to the heavier side and women skewing more to the lighter side. They both have outliers with the male's 53kg weight class having significantly less lifters and the female's 52kg weight class having significantly more lifters.
 
-# How much does equipment change the lifter's performance?
+## How much does equipment change the lifter's performance?
 
 I wanted to know how equipment affects your performance. Single-ply equipment and wraps are supposed to help you lift more weight than you could raw. I wanted to see how much of a difference the equipment actually makes. To do this I grouped by equiment and found the average squat, bench, deadlift and total for each.
 
 ```{r}
+#table for lifters by equipment
 lifters_by_equipment <- ipf_lifts %>%
   group_by(equipment)%>%
   summarise(avg_squat = mean(best3squat_kg[best3squat_kg != 0]),
@@ -277,28 +298,29 @@ lifters_by_equipment <- ipf_lifts %>%
             avg_total = sum(avg_squat,avg_bench,avg_deadlift))
 lifters_by_equipment
 
+#had to use this table for the plot
 lifters_by_equipment_pivoted <- lifters_by_equipment%>%
   pivot_longer(cols = c("avg_squat", "avg_bench", "avg_deadlift", "avg_total"),
                names_to = "lift_type",
                values_to = "avg_weight_kg")
               
-
-lifters_by_equipment_pivoted
 ```
 
 ```{r}
-suppressMessages(lifters_by_equipment_pivoted%>%
+#plot for lifters by equipment
+lifters_by_equipment_pivoted%>%
   ggplot(aes(x=lift_type, y=avg_weight_kg, fill = equipment))+
-  geom_bar(stat = "identity", position = "dodge"))
+  geom_bar(stat = "identity", position = "dodge")
 ```
 
-This graphs shows to no surprise that out of the three raw lifters are the weakest.What is interesting however is that it seems wraps is stronger than single-ply. I did not expect this to be the case but I think this is contributed to sample size. Wraps is a relatively new way of lifting in the IPF so it hasn't been around nearly as long as single-ply and wraps. Because of this and the fact that the more experienced lifters are probably eager to try a new lifting style I believe this is the reason why the graph portrays wraps to be the strongest way to lift. I predict that as time goes on and the sample size increases single-ply will eventually overtake wraps for strongest lifting style.
+This graph shows to no surprise that out of the three raw lifters are the weakest.What is interesting however is that it seems wraps is stronger than single-ply. I did not expect this to be the case but I think this is contributed to sample size. Wraps is a relatively new way of lifting in the IPF so it hasn't been around nearly as long as single-ply and wraps. Because of this and the fact that the more experienced lifters are probably eager to try a new lifting style I believe this is the reason why the graph portrays wraps to be the strongest way to lift. I predict that as time goes on and the sample size increases single-ply will eventually overtake wraps for strongest lifting style.
 
-# Which weight classes are the strongest and how does strength differ between the sexes?
+## Which weight classes are the strongest and how does strength differ between the sexes?
 
 I combined the last two questions I had for sake of convenience and clarity. I wanted to know out of the weight classes which lifters are the strongest. I also wanted to see how strength compares between the males and females. To do this I filtered by sex and grouped by weight class again took the average squat, bench, deadlift and total for each.
 
 ```{r}
+#table for average lifts for male weight classes
 avg_lifts_weight_class_male <- ipf_lifts %>% 
   filter(sex == "M") %>%
   group_by(weight_class_kg=factor(weight_class_kg,levels = male_weight_classes))%>%
@@ -311,6 +333,7 @@ avg_lifts_weight_class_male <- ipf_lifts %>%
   arrange(weight_class_kg)
 avg_lifts_weight_class_male
 
+#table for average lifts for female weight classes
 avg_lifts_weight_class_female <- ipf_lifts %>% 
   filter(sex == "F") %>%
   group_by(weight_class_kg=factor(weight_class_kg,levels = female_weight_classes))%>%
@@ -324,48 +347,56 @@ avg_lifts_weight_class_female
 ```
 
 ```{r}
+#average squat by weight class male
 avg_lifts_weight_class_male %>%
   ggplot(aes(x = weight_class_kg, y = avg_squat))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_squat(kg)", title="Average squat by weight class male")
 
+#average squat by weight class female
 avg_lifts_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_squat))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_squat(kg)", title="Average squat by weight class female")
 
+#average bench by weight class male
 avg_lifts_weight_class_male %>%
   ggplot(aes(x = weight_class_kg, y = avg_bench))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_bench(kg)", title="Average bench by weight class male")
 
+#average bench by weight class female
 avg_lifts_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_bench))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_bench(kg)", title="Average bench by weight class female")
 
+#average deadlift by weight class male
 avg_lifts_weight_class_male%>%
   ggplot(aes(x = weight_class_kg, y = avg_deadlift))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_deadlift(kg)", title="Average deadlift by weight class male")
 
+#average deadlift by weight class female
 avg_lifts_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_deadlift))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_deadlift(kg)", title="Average deadlift by weight class female")
 
+#average total by weight class male
 avg_lifts_weight_class_male%>%
   ggplot(aes(x = weight_class_kg, y = avg_total))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Avg_total(kg)", title="Average total by weight class male")
 
+#average total by weight class female
 avg_lifts_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_total))+
   geom_bar(stat = "identity", fill = "navyblue")+
@@ -377,9 +408,10 @@ avg_lifts_weight_class_female%>%
 
 For both males and females these graphs show that strength is proportional to weight class. The heavier the weight class, the heavier the weight. Looking at the numbers between the males and females it's clear that the males are significantly stronger. To make this more fair I again will be using a relative strength ratio by dividing each of the lifts and the totals by body weight.
 
-# Relative strength of male and female weight classes
+## Relative strength of male and female weight classes
 
 ```{r}
+#table for average ratio by weight class male
 avg_ratio_weight_class_male <- ipf_lifts %>%
   filter(sex == "M")%>%
   group_by(weight_class_kg=factor(weight_class_kg,levels = male_weight_classes)) %>%
@@ -393,6 +425,7 @@ avg_ratio_weight_class_male <- ipf_lifts %>%
 
 avg_ratio_weight_class_male
 
+#table for average ratio by weight class female
 avg_ratio_weight_class_female <- ipf_lifts %>%
   filter(sex == "F")%>%
   group_by(weight_class_kg=factor(weight_class_kg,levels = female_weight_classes)) %>%
@@ -407,48 +440,56 @@ avg_ratio_weight_class_female
 ```
 
 ```{r}
+#average squat ratio by weight class male
 avg_ratio_weight_class_male %>%
   ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average squat ratio by weight class male")
 
+#average squat ratio by weight class female
 avg_ratio_weight_class_female %>%
   ggplot(aes(x = weight_class_kg, y = avg_squat_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average squat ratio by weight class female")
 
+#average bench ratio by weight class male
 avg_ratio_weight_class_male %>%
   ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average bench ratio by weight class male")
 
+#average bench ratio by weight class female
 avg_ratio_weight_class_female %>%
   ggplot(aes(x = weight_class_kg, y = avg_bench_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average bench ratio by weight class female")
 
+#average deadlift ratio by weight class male
 avg_ratio_weight_class_male%>%
   ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average deadlift ratio by weight class male")
 
+#average deadlift ratio by weight class female
 avg_ratio_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_deadlift_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average deadlift ratio by weight class female")
 
+#average total ratio by weight class male
 avg_ratio_weight_class_male%>%
   ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   labs(x= "Weight Class", y= "Weight lifted", title="Average total ratio by weight class male")
 
+#average total ratio by weight class female
 avg_ratio_weight_class_female%>%
   ggplot(aes(x = weight_class_kg, y = avg_total_ratio))+
   geom_bar(stat = "identity", fill = "navyblue")+
